@@ -1,10 +1,20 @@
 # aap-config
 
-![Version: 0.1.2](https://img.shields.io/badge/Version-0.1.2-informational?style=flat-square)
+![Version: 0.1.3](https://img.shields.io/badge/Version-0.1.3-informational?style=flat-square)
 
 A Helm chart to build and deploy secrets using external-secrets for ansible-edge-gitops
 
 This chart is used to set up the Ansible Automation Platform Operator version 2.5.
+
+### Notable changes
+
+* v0.1.2: Introduce EXTRA_PLAYBOOK_OPTS to config job, to allow for extra vars and
+-v options (usually -vvv) to be passed to playbook to help debug it
+
+* v0.1.3: Introduce "bootstrap" phase; this means that the config job will run until
+it succeeds, and only then proceed to create the cronjob to re-configure. It also
+means the cronjob scheduling is nowehere near as aggressive (every even hour at
+the 10-minute mark instead of every ten minutes as previously).
 
 ## Values
 
@@ -22,7 +32,7 @@ This chart is used to set up the Ansible Automation Platform Operator version 2.
 | configJob.configTimeout | int | `1800` |  |
 | configJob.image | string | `"quay.io/hybridcloudpatterns/imperative-container:v1"` |  |
 | configJob.imagePullPolicy | string | `"Always"` |  |
-| configJob.schedule | string | `"*/10 * * * *"` |  |
+| configJob.schedule | string | `"10 */2 * * *"` |  |
 | rbac.roleBindings[0].createBinding | bool | `true` |  |
 | rbac.roleBindings[0].name | string | `"view-aap-secrets-cms"` |  |
 | rbac.roleBindings[0].roleRef.kind | string | `"ClusterRole"` |  |
