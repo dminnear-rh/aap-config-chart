@@ -4,3 +4,7 @@ keywords:
 - pattern
 name: aap-config
 version: 0.1.4
+dependencies:
+- name: vp-rbac
+  version: '0.1.*'
+  repository: https://charts.validatedpatterns.io
