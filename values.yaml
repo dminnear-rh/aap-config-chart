@@ -27,108 +27,53 @@ configJob:
 serviceAccountName: aap-config-sa
 serviceAccountNamespace: aap-config
 
-rbac:
+# Validation job configuration
+validationJob:
+  disabled: false
+  activeDeadlineSeconds: 600
+
+# RBAC configuration using vp-rbac subchart
+vp-rbac:
+  serviceAccounts:
+    aap-config-sa:
+      namespace: aap-config
+      roleBindings:
+        roles:
+          - view-all
+          - external-secrets-validator
+        clusterRoles:
+          - view-secrets-cms
+          - view-routes
+          
+  clusterRoles:
+    view-secrets-cms:
+      rules:
+      - apiGroups: [""]
+        resources: ["secrets", "configmaps"]
+        verbs: ["get", "list", "watch"]
+        
+    view-routes:
+      rules:
+      - apiGroups: ["route.openshift.io"]
+        resources: ["routes"]
+        verbs: ["get", "list", "watch"]
+    
   roles:
-    - name: view-secrets-cms
-      createRole: true
-      apiGroups:
-        - '""'
-      scope:
-        cluster: true
-      resources:
-        - secrets
-        - configmaps
-      verbs:
-        - "get"
-        - "list"
-        - "watch"
-    - name: view-routes
-      createRole: true
-      apiGroups:
-        - route.openshift.io
-      scope:
-        cluster: true
-      resources:
-        - routes
-      verbs:
-        - "get"
-        - "list"
-        - "watch"
-    - name: view-all
-      createRole: true
-      apiGroups:
-        - '"*"'
-      scope:
-        cluster: false
-      resources:
-        - '"*"'
-      verbs:
-        - "get"
-        - "list"
-        - "watch"
-  roleBindings:
-    - name: view-aap-secrets-cms
-      createBinding: true
-      scope:
-        cluster: false
-        namespace: "ansible-automation-platform"
-      subjects:
-        kind: ServiceAccount
-        name: aap-config-sa
-        namespace: aap-config
-        apiGroup: ""
-      roleRef:
-        kind: ClusterRole
-        name: view-secrets-cms
-    - name: view-aap-routes
-      createBinding: true
-      scope:
-        cluster: false
-        namespace: "ansible-automation-platform"
-      subjects:
-        kind: ServiceAccount
-        name: aap-config-sa
-        namespace: aap-config
-        apiGroup: ""
-      roleRef:
-        kind: ClusterRole
-        name: view-routes
-    - name: view-vault-secrets-cms
-      createBinding: true
-      scope:
-        cluster: false
-        namespace: "vault"
-      subjects:
-        kind: ServiceAccount
-        name: aap-config-sa
-        namespace: aap-config
-        apiGroup: ""
-      roleRef:
-        kind: ClusterRole
-        name: view-secrets-cms
-    - name: view-imperative-secrets-cms
-      createBinding: true
-      scope:
-        cluster: false
-        namespace: "imperative"
-      subjects:
-        kind: ServiceAccount
-        name: aap-config-sa
-        namespace: aap-config
-        apiGroup: ""
-      roleRef:
-        kind: ClusterRole
-        name: view-secrets-cms
-    - name: view-all
-      createBinding: true
-      scope:
-        cluster: false
-        namespace: "aap-config"
-      subjects:
-        kind: ServiceAccount
-        name: aap-config-sa
-        namespace: aap-config
-        apiGroup: ""
-      roleRef:
-        kind: Role
-        name: view-all
+    view-all:
+      rules:
+      - apiGroups: ["*"]
+        resources: ["*"]
+        verbs: ["get", "list", "watch"]
+    
+    # RBAC for external secrets validation (namespace-scoped)
+    external-secrets-validator:
+      rules:
+      - apiGroups: ["external-secrets.io"]
+        resources: ["externalsecrets"]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: [""]
+        resources: ["secrets"]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["authorization.k8s.io"]
+        resources: ["selfsubjectrulesreviews"]
+        verbs: ["create"]
